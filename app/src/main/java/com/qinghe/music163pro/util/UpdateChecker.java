@@ -1,0 +1,165 @@
+package com.qinghe.music163pro.util;
+
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+import com.qinghe.music163pro.api.ImoowApiHelper;
+
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Utility for checking app updates and downloading the latest APK.
+ */
+public class UpdateChecker {
+
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    public interface CheckCallback {
+        void onResult(boolean isLatest);
+        void onError(String error);
+    }
+
+    public interface VersionCheckCallback {
+        void onResult(VersionInfo versionInfo);
+        void onError(String error);
+    }
+
+    public static class VersionInfo {
+        private final boolean latest;
+        private final String versionName;
+
+        public VersionInfo(boolean latest, String versionName) {
+            this.latest = latest;
+            this.versionName = versionName;
+        }
+
+        public boolean isLatest() {
+            return latest;
+        }
+
+        public String getVersionName() {
+            return versionName;
+        }
+    }
+
+    public interface SourcesCallback {
+        void onResult(List<String> urls);
+        void onError(String error);
+    }
+
+    public interface DownloadCallback {
+        void onProgress(int percent);
+        void onComplete(String filePath);
+        void onError(String error);
+    }
+
+    /**
+     * GET /source — returns list of download URLs.
+     * Response: {code:200, data:[url1,url2,...]}
+     * Calls callback on main thread.
+     */
+    public static void fetchSources(SourcesCallback callback) {
+        ImoowApiHelper.fetchSources(new ImoowApiHelper.SourcesCallback() {
+            @Override
+            public void onResult(List<String> urls) {
+                callback.onResult(new ArrayList<>(urls));
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    /**
+     * POST /check with the app's versionCode.
+     * Calls callback on main thread.
+     */
+    public static void checkVersion(Context context, CheckCallback callback) {
+        checkVersionInfo(context, new VersionCheckCallback() {
+            @Override
+            public void onResult(VersionInfo versionInfo) {
+                callback.onResult(versionInfo.isLatest());
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    public static void checkVersionInfo(Context context, VersionCheckCallback callback) {
+        ImoowApiHelper.checkVersionInfo(context, new ImoowApiHelper.VersionCheckCallback() {
+            @Override
+            public void onResult(ImoowApiHelper.CheckResult result) {
+                callback.onResult(new VersionInfo(result.isLatest(), result.getVersionName()));
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    /**
+     * Downloads an APK from the given downloadUrl to savePath.
+     * Progress and completion callbacks are posted to the main thread.
+     */
+    public static void downloadUpdate(String downloadUrl, String savePath, DownloadCallback callback) {
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(downloadUrl);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(30000);
+                conn.setReadTimeout(60000);
+                conn.connect();
+
+                int totalLength = conn.getContentLength();
+                InputStream is = new BufferedInputStream(conn.getInputStream());
+                OutputStream os = new FileOutputStream(savePath);
+
+                try {
+                    byte[] buf = new byte[4096];
+                    int bytesRead;
+                    long totalRead = 0;
+                    int lastPercent = -1;
+                    while ((bytesRead = is.read(buf)) != -1) {
+                        os.write(buf, 0, bytesRead);
+                        totalRead += bytesRead;
+                        if (totalLength > 0) {
+                            int percent = (int) (totalRead * 100L / totalLength);
+                            if (percent != lastPercent) {
+                                lastPercent = percent;
+                                final int p = percent;
+                                mainHandler.post(() -> callback.onProgress(p));
+                            }
+                        }
+                    }
+                } finally {
+                    os.close();
+                    is.close();
+                }
+                final String path = savePath;
+                mainHandler.post(() -> callback.onComplete(path));
+            } catch (Exception e) {
+                final String msg = e.getMessage();
+                mainHandler.post(() -> callback.onError(msg != null ? msg : "下载失败"));
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }).start();
+    }
+}

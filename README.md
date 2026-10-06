@@ -1,1 +1,118 @@
-# Neko-163Music-Pro
+<p align="center">
+  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="163MusicPro" width="120" height="120">
+</p>
+
+<h1 align="center">163MusicPro</h1>
+
+<p align="center">
+  <strong>适用于小天才电话手表的网易云音乐播放器</strong>
+</p>
+
+<p align="center">
+  <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/FOXcode-sys/Neko-163Music-Pro?style=flat-square" alt="Latest Release"></a>
+  <img src="https://img.shields.io/badge/platform-Android%207.0%2B-brightgreen?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/screen-320%C3%97360-blue?style=flat-square" alt="Screen">
+  <img src="https://img.shields.io/github/license/FOXcode-sys/Neko-163Music-Pro?style=flat-square" alt="License">
+</p>
+
+<p align="center">
+  官网：<a href='https://163.imoow.com'>https://163.imoow.com</a><br>
+  直接调用网易云音乐 API，无需第三方中间服务器。<br>
+  为 320×360 手表屏幕精心适配，所有界面均支持手势操作。
+</p>
+
+---
+
+## ✨ 功能特性
+
+| 功能 | 说明 |
+|------|------|
+| 🔍 **在线搜索** | 搜索网易云音乐全曲库，支持分页加载 |
+| ▶️ **音乐播放** | 上一首 / 下一首 / 暂停 / 播放，自动切歌 |
+| 📝 **歌词同步** | 在线获取 LRC 歌词，逐行高亮滚动显示 |
+| ❤️ **收藏管理** | 本地 / 云端收藏，数据持久化，重装自动恢复 |
+| ⬇️ **离线下载** | 下载歌曲到本地，支持离线播放 |
+| 🔔 **铃声设置** | 截取歌曲片段设为手表铃声 |
+| 📊 **排行榜** | 浏览网易云热门榜单 |
+| 📜 **播放历史** | 自动记录最近 200 首播放记录 |
+| ⚡ **倍速播放** | 0.1x – 5.0x 变速，支持音调不变 / 音调随速度改变 |
+| 🎲 **播放模式** | 列表循环 / 单曲循环 / 随机播放 |
+| ⏱ **定时关闭** | 定时自动停止播放 |
+| 🔊 **音量控制** | 自定义音量叠加层，1.5s 自动消失 |
+| 🔑 **多种登录** | 扫码登录 / Cookie 登录 |
+| 🛡️ **后台保活** | 前台服务 + WakeLock，锁屏和后台不被杀死 |
+| 👤 **个人中心** | 查看账号信息、VIP 状态与有效期 |
+| 🎵 **私人漫游** | 登录后获取个性化推荐歌曲 |
+
+## 📦 安装
+
+### 从 Release 安装（推荐）
+
+1. 前往 [**Releases**](../../releases/latest) 下载最新 APK
+2. 将 APK 传输到手表（通过 ADB 或文件管理）
+3. 在手表上安装并打开应用
+
+### 从源码构建
+
+**环境要求：** JDK 8+, Android SDK 34
+
+```bash
+# 克隆仓库
+git clone https://github.com/FOXcode-sys/Neko-163Music-Pro.git
+cd Neko-163Music-Pro
+
+# 构建调试版本
+./gradlew assembleDebug
+# APK → app/build/outputs/apk/debug/app-debug.apk
+
+# 构建签名发布版本
+./gradlew assembleRelease
+# APK → app/build/outputs/apk/release/app-release.apk
+```
+
+> 签名发布需配置环境变量：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`
+
+## 🚀 快速开始
+
+1. 打开应用进入播放器主界面
+2. **左滑** 查看歌词，**右滑** 关闭歌词 / 返回
+3. 点击右上角 **⋯** 进入功能菜单
+4. 在菜单中选择 **搜索**，输入歌曲名即可播放
+5. 如需播放 VIP 歌曲，进入 **登录** 页面完成登录：
+   - **扫码登录**：使用网易云音乐 App 扫描二维码
+   - **Cookie 登录**：手动粘贴 Cookie
+
+## 🏗 项目结构
+
+```
+app/src/main/java/com/qinghe/music163pro/
+├── activity/          # UI 界面 (MainActivity, SearchActivity, ...)
+├── api/               # 网易云 API 调用 (MusicApiHelper, NeteaseApiCrypto)
+├── manager/           # 数据管理 (FavoritesManager, DownloadManager, HistoryManager)
+├── model/             # 数据模型 (Song)
+├── player/            # 播放器核心 (MusicPlayerManager)
+├── service/           # 后台服务 (MusicPlaybackService)
+└── util/              # 工具类 (MusicLog, QrCodeGenerator)
+```
+
+## ⚙️ 技术规格
+
+| 项目 | 值 |
+|------|------|
+| 包名 | `com.qinghe.music163pro` |
+| 最低 SDK | Android 6.0 (API 23) |
+| 目标 SDK | Android 8.1 (API 27) |
+| 编译 SDK | Android 14 (API 34) |
+| 屏幕适配 | 320×360 (小天才手表) |
+| API 加密 | WeAPI (AES-128-CBC + RSA) |
+| 依赖 | `androidx.appcompat:appcompat:1.6.1` |
+
+## 🔄 CI/CD
+
+代码合并到 `main` 分支后，GitHub Actions 自动构建并发布签名 APK 到 Releases。
+
+配置签名密钥：**Settings → Secrets and variables → Actions** 添加：
+
+## ℹ️ 注意
+
+本项目使用vibe coding辅助编写
