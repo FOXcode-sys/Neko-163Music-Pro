@@ -1,9 +1,10 @@
 name: Build APK
 on:
   push:
-    branches: ['*']
+    branches-ignore: ['main']
   pull_request:
     branches: ['*']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

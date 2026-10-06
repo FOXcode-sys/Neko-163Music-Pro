@@ -3,6 +3,7 @@ name: Build & Release APK
 on:
   push:
     branches: ['main']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -81,69 +82,3 @@ jobs:
           files: ${{ steps.apk.outputs.path }}
           draft: false
           prerelease: false
-      - name: Upload APK to Gitee via REST API and Update source.json
-        env:
-          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
-          TAG_NAME: ${{ steps.version.outputs.tag }}
-          APK_PATH: ${{ steps.apk.outputs.path }}
-        run: |
-          echo "=== Step 1: Upload APK to Gitee via REST API ==="
-
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          import urllib.error
-          import urllib.parse
-          import urllib.request
-
-          apk_path = os.environ["APK_PATH"]
-          tag_name = os.environ["TAG_NAME"]
-          token = os.environ["GITEE_TOKEN"]
-          encoded_tag_name = urllib.parse.quote(f"{tag_name}.apk", safe="")
-          url = f"https://gitee.com/api/v5/repos/xtcqinghe/163-music-pro/contents/{encoded_tag_name}"
-          apk_size = os.path.getsize(apk_path)
-
-          print("Uploading APK metadata:")
-          print(json.dumps({"path": f"{tag_name}.apk", "size_bytes": apk_size}, ensure_ascii=False))
-
-          with open(apk_path, "rb") as apk_file:
-              content = base64.b64encode(apk_file.read()).decode("ascii")
-
-          payload = urllib.parse.urlencode(
-              {
-                  "access_token": token,
-                  "content": content,
-                  "message": f"Auto sync APK: {tag_name} from GitHub Actions",
-              }
-          ).encode("utf-8")
-
-          request = urllib.request.Request(url, data=payload, method="POST")
-          request.add_header("Content-Type", "application/x-www-form-urlencoded")
-          try:
-              with urllib.request.urlopen(request) as response:
-                  result = json.loads(response.read().decode("utf-8"))
-                  print(json.dumps(result, ensure_ascii=False))
-          except urllib.error.HTTPError as error:
-              body = error.read().decode("utf-8", errors="replace")
-              print(f"HTTP Error {error.code} for {url}: {body}")
-              raise
-          PY
-
-          # 配置 Git 用户信息
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-          echo "=== Step 2: Update source.json in current GitHub Repo ==="
-
-          # 创建/更新 source.json
-          # 注意：URL 中不能有空格，已修正你描述中的空格问题
-          echo "[\"https://gitee.com/xtcqinghe/163-music-pro/raw/master/${TAG_NAME}.apk\"]" > source.json
-          
-          # 提交并推送到当前 GitHub 仓库 (main 分支)
-          git add source.json
-          git commit -m "chore: update source.json for ${TAG_NAME}"
-          
-          # 推送回 GitHub
-          # 使用 github.token 自动认证，无需额外配置 Secret
-          git push origin main
