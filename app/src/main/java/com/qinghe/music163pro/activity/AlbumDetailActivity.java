@@ -202,12 +202,6 @@ public class AlbumDetailActivity extends BaseWatchActivity {
         });
     }
 
-    private int px(int baseValue) {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        float scale = screenWidth / 320f;
-        return Math.round(baseValue * scale);
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();

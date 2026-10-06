@@ -657,11 +657,6 @@ public class SongRecognitionActivity extends BaseWatchActivity {
         parent.addView(spacer);
     }
 
-    private int px(int base) {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        return (int) (base * screenWidth / 320f + 0.5f);
-    }
-
     private int calculateRecordedSeconds(long totalBytes) {
         return Math.max(1, (int) Math.ceil(totalBytes / (double) BYTES_PER_SECOND));
     }

@@ -261,12 +261,4 @@ public class AboutActivity extends BaseWatchActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT, px(1)));
         return divider;
     }
-
-    /**
-     * Convert a value scaled for a 320px-wide watch screen to actual pixels.
-     */
-    private int px(int baseValue) {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        return (int) (baseValue * screenWidth / 320f + 0.5f);
-    }
 }

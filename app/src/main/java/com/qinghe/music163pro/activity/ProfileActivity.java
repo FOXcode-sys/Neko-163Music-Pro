@@ -360,9 +360,4 @@ public class ProfileActivity extends BaseWatchActivity {
 
         contentLayout.addView(row);
     }
-
-    private int px(int baseValue) {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        return (int) (baseValue * screenWidth / 320f + 0.5f);
-    }
 }

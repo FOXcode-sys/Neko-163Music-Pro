@@ -408,11 +408,6 @@ public class MyPlaylistsActivity extends BaseWatchActivity {
         });
     }
 
-    private int px(int baseValue) {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        return (int) (baseValue * screenWidth / 320f + 0.5f);
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();

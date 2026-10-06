@@ -99,9 +99,4 @@ public class OpenSourceActivity extends BaseWatchActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT, px(1)));
         return divider;
     }
-
-    private int px(int baseValue) {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        return (int) (baseValue * screenWidth / 320f + 0.5f);
-    }
 }
